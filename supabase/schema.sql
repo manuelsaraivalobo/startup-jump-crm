@@ -8,8 +8,8 @@ create table if not exists public.game_state (
 alter table public.game_state enable row level security;
 
 create policy "read own state" on public.game_state
-  for select using (auth.uid() = user_id);
+  for select to authenticated using ((select auth.uid()) = user_id);
 create policy "insert own state" on public.game_state
-  for insert with check (auth.uid() = user_id);
+  for insert to authenticated with check ((select auth.uid()) = user_id);
 create policy "update own state" on public.game_state
-  for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
+  for update to authenticated using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
