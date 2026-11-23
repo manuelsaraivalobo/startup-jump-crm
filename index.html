@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Startup Jump CRM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* VOICE: playful but sharp, a founder's dealflow board, not a toy
+   IDEA: the job hunt is your own fundraise; XP raises your round, Pre-seed to IPO
+   PICTURE: the pipeline board itself, with a round meter and today's quests above it
+   COLOUR and TYPE: white / near-black, cobalt pipeline, coral for wins; Archivo + Inter
+   LAYOUT: compact header strip, quests row, scrolling board, graveyard below */
+:root{color-scheme:light dark;
+--bg:light-dark(#ffffff,#0e1014);--panel:light-dark(#f3f5fb,#171a21);--card:light-dark(#ffffff,#1e222b);
+--ink:light-dark(#121418,#eef0f5);--mute:light-dark(#5b6270,#9aa2b2);--line:light-dark(#e2e6ef,#2a2f3a);
+--cob:light-dark(#2747ff,#7f93ff);--cobs:light-dark(#e6eaff,#1f2647);--cor:light-dark(#ff4f2b,#ff7a5c);--cors:light-dark(#ffe9e3,#3a1f19);
+--hi:light-dark(#d6331a,#ff8a70);--med:light-dark(#d98a00,#f2b84b);--lo:light-dark(#8a92a3,#6f7788)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Inter,system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3,.disp{font-family:Archivo,Inter,sans-serif}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:1px solid var(--line);background:var(--card);border-radius:10px;min-height:44px;padding:0 14px;font-weight:600}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,.card:focus-visible{outline:3px solid var(--cob);outline-offset:2px}
+button.pri{background:var(--cob);color:#fff;border-color:var(--cob)}
+button.win{background:var(--cor);color:#fff;border-color:var(--cor)}
+button.ghost{background:transparent}
+.top{padding:20px max(4vw,16px) 8px;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:20px;align-items:end}
+.title h1{font-size:clamp(30px,4vw,44px);line-height:1.05;margin:0 0 6px;text-wrap:balance}
+.title p{margin:0;color:var(--mute)}
+.round{background:var(--ink);color:var(--bg);border-radius:18px;padding:16px 18px;display:grid;gap:8px}
+.round .row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.round .lvl{font-family:Archivo;font-weight:800;font-size:clamp(26px,3.2vw,36px);line-height:1}
+.round small{opacity:.75;font-size:13px}
+.bar{height:12px;border-radius:99px;background:color-mix(in srgb,var(--bg) 22%,transparent);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--cor);border-radius:99px;transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.stats{display:flex;gap:18px;flex-wrap:wrap;font-size:14px}.stats b{font-family:Archivo;font-size:20px;display:block;line-height:1.1}
+.quests{padding:10px max(4vw,16px);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.q{background:var(--panel);border-radius:14px;padding:12px 14px;display:grid;gap:6px}
+.q.done{background:var(--cors)}
+.q .h{display:flex;justify-content:space-between;gap:8px;font-weight:600;font-size:15px}
+.q .h span{color:var(--cor);font-family:Archivo;white-space:nowrap}
+.q .bar{background:var(--line);height:8px}
+.tools{padding:8px max(4vw,16px);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.tools input{flex:1 1 200px;min-height:44px;border:1px solid var(--line);border-radius:10px;padding:0 12px;background:var(--card);font-size:16px}
+.chip{font-weight:500}.chip[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.board{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(250px,1fr);gap:12px;padding:8px max(4vw,16px) 18px;overflow-x:auto}
+.col{background:var(--panel);border-radius:16px;padding:10px;display:flex;flex-direction:column;gap:8px;min-height:180px}
+.col.over{outline:2px dashed var(--cob)}
+.col header{display:flex;justify-content:space-between;align-items:baseline;padding:2px 4px 4px}
+.col header h3{margin:0;font-size:16px}.col header small{color:var(--mute);font-size:13px;white-space:nowrap}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:grid;gap:4px;cursor:pointer;text-align:left}
+.card:hover{border-color:var(--cob)}
+.card .co{display:flex;gap:8px;align-items:center;font-weight:700}
+.dot{width:9px;height:9px;border-radius:50%;flex:none}.p-High{background:var(--hi)}.p-Medium{background:var(--med)}.p-Low{background:var(--lo)}
+.card .who{color:var(--mute);font-size:14px}.card .act{font-size:14px}
+.card .ft{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-top:4px}
+.tag{font-size:13px;padding:2px 8px;border-radius:99px;background:var(--panel);white-space:nowrap}
+.tag.late{background:var(--cors);color:var(--hi)}.tag.stale{background:var(--cobs);color:var(--cob)}
+.adv{min-height:36px;padding:0 10px;font-size:14px}
+.empty{color:var(--mute);font-size:14px;padding:8px 4px}
+.grave{padding:0 max(4vw,16px) 40px}
+.grave summary{cursor:pointer;font-weight:600;min-height:44px;display:flex;align-items:center}
+.grave .list{display:flex;flex-wrap:wrap;gap:8px}
+.log{padding:0 max(4vw,16px) 40px;color:var(--mute);font-size:14px}
+.log ol{margin:6px 0 0;padding-left:20px}
+.ov{position:fixed;inset:0;background:rgba(10,12,18,.5);display:none;align-items:flex-start;justify-content:center;padding:4vh 12px;overflow:auto;z-index:20}
+.ov.on{display:flex}
+.modal{background:var(--bg);border-radius:18px;width:min(640px,100%);padding:20px;display:grid;gap:12px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal h2{margin:0;font-size:26px;line-height:1.1}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+label{display:grid;gap:4px;font-size:13px;color:var(--mute);font-weight:500}
+label input,label select,label textarea{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--card);font-size:16px;min-height:44px}
+textarea{resize:vertical;min-height:90px;line-height:1.45}
+.acts{display:flex;flex-wrap:wrap;gap:8px}
+.stagebar{display:flex;gap:4px;flex-wrap:wrap}.stagebar span{font-size:13px;padding:3px 9px;border-radius:99px;background:var(--panel)}.stagebar span.on{background:var(--cob);color:#fff}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:12px 16px;border-radius:12px;display:none;gap:12px;align-items:center;z-index:30;max-width:92vw}
+.toast.on{display:flex}.toast b{color:var(--cor);font-family:Archivo;font-size:18px}
+.toast button{min-height:36px;background:transparent;color:var(--bg);border-color:color-mix(in srgb,var(--bg) 40%,transparent)}
+.pop{animation:pop .5s cubic-bezier(.2,1.6,.4,1)}@keyframes pop{0%{transform:scale(.6)}100%{transform:scale(1)}}
+.note{padding:0 max(4vw,16px);color:var(--mute);font-size:14px}
+@media(prefers-reduced-motion:reduce){.pop{animation:none}.bar i{transition:none}}
+@media(max-width:760px){.top{grid-template-columns:minmax(0,1fr)}.quests{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:520px){.grid2{grid-template-columns:minmax(0,1fr)}.board{grid-auto-columns:minmax(240px,86vw)}}
+</style>
+</head>
+<body>
+<section class="top">
+  <div class="title">
+    <h1>Startup Jump: raise your round</h1>
+    <p>Every message, reply and meeting earns XP. Enough XP takes you from Pre-seed to IPO, and the IPO is the offer.</p>
+  </div>
+  <div class="round" aria-live="polite">
+    <div class="row"><span class="lvl" id="lvl">Pre-seed</span><small id="xpnext">0 XP</small></div>
+    <div class="bar"><i id="xpbar" style="width:0%"></i></div>
+    <div class="stats" id="stats"></div>
+  </div>
+</section>
+<section class="quests" id="quests" aria-label="Today's quests"></section>
+<div class="tools">
+  <input id="q" type="search" placeholder="Search company, person, notes" aria-label="Search">
+  <button class="chip" data-p="All" aria-pressed="true">All</button>
+  <button class="chip" data-p="High" aria-pressed="false">High</button>
+  <button class="chip" data-p="Medium" aria-pressed="false">Medium</button>
+  <button class="chip" data-p="Low" aria-pressed="false">Low</button>
+  <button class="pri" id="add">+ New lead</button>
+  <button class="ghost" id="out" hidden>Sign out</button>
+</div>
+<p class="note" id="status">Loading your pipeline…</p>
+<main class="board" id="board"></main>
+<details class="grave" id="grave"><summary id="graveT">Graveyard (0)</summary><div class="list" id="graveL"></div></details>
+<section class="log"><strong>Recent moves</strong><ol id="log"></ol></section>
+
+<div class="ov" id="ov" role="dialog" aria-modal="true" aria-labelledby="mt">
+  <form class="modal" id="form">
+    <h2 id="mt">Lead</h2>
+    <div class="stagebar" id="sb"></div>
+    <div class="grid2">
+      <label>Company<input id="f-company" required></label>
+      <label>Who<input id="f-who"></label>
+      <label>Priority<select id="f-priority"><option>High</option><option>Medium</option><option>Low</option></select></label>
+      <label>Send by<input id="f-due" type="date"></label>
+    </div>
+    <label>Next action<input id="f-action"></label>
+    <label>Message<textarea id="f-msg" rows="5"></textarea></label>
+    <div class="acts"><button type="button" id="copy">Copy message</button><span id="copied" class="empty" aria-live="polite"></span></div>
+    <label>Notes<textarea id="f-notes" rows="3"></textarea></label>
+    <div class="acts" id="moves"></div>
+    <div class="acts">
+      <button type="submit" class="pri">Save</button>
+      <button type="button" class="ghost" id="close">Close</button>
+      <button type="button" class="ghost" id="del">Delete</button>
+    </div>
+  </form>
+</div>
+<div class="ov" id="login" role="dialog" aria-modal="true" aria-labelledby="lt">
+  <form class="modal" id="loginF">
+    <h2 id="lt">Log in to your round</h2>
+    <p class="empty">We'll email you a magic link. Your pipeline is saved to your account.</p>
+    <label>Email<input id="email" type="email" autocomplete="email" required></label>
+    <div class="acts"><button type="submit" class="pri">Send login link</button><span id="lmsg" class="empty" aria-live="polite"></span></div>
+  </form>
+</div>
+<div class="toast" id="toast" role="status"><span id="tmsg"></span><button id="undo" type="button">Undo</button></div>
+
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+{
+const STAGES=[{k:'todo',n:'To do',xp:0},{k:'sent',n:'Sent',xp:10},{k:'replied',n:'Replied',xp:25},{k:'meeting',n:'Meeting',xp:50},{k:'process',n:'Interviewing',xp:100},{k:'offer',n:'Offer',xp:300}];
+const LEVELS=[['Pre-seed',0],['Seed',100],['Series A',300],['Series B',700],['Series C',1300],['Pre-IPO',2200],['IPO',3500]];
+const QUESTS=[{id:'send5',n:'Send 5 messages',goal:5,types:['sent'],bonus:20},{id:'nudge2',n:'Nudge 2 quiet leads',goal:2,types:['nudge'],bonus:15},{id:'meet1',n:'Land a reply or meeting',goal:1,types:['replied','meeting'],bonus:30}];
+const STALE_DAYS=5,LS='startup-jump-crm';
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const day=t=>new Date(t).toLocaleDateString('en-CA');
+const today=()=>day(Date.now());
+const clone=o=>JSON.parse(JSON.stringify(o));
+let dirty=false,state=null,ref=null,writing=false,again=false,saveT=null,prev=null,filterP='All',openId=null,toastT=null;
+
+const blank=()=>({contacts:[],xp:0,events:[],quests:{}});
+function norm(s){s=s&&typeof s==='object'?clone(s):blank();s.contacts=Array.isArray(s.contacts)?s.contacts:[];s.events=Array.isArray(s.events)?s.events:[];s.quests=s.quests||{};s.xp=+s.xp||0;
+  s.contacts.forEach(c=>{c.reached=Array.isArray(c.reached)?c.reached:[];c.stage=c.stage||'todo';c.priority=c.priority||'Medium'});return s}
+
+/* ---------- persistence: Supabase (magic-link login, one row per user), else this browser ---------- */
+const CFG=window.CRM_CONFIG||{};let sb=null,uid=null;
+function save(){dirty=true;clearTimeout(saveT);saveT=setTimeout(flush,500);try{localStorage.setItem(LS,JSON.stringify(state))}catch(e){}}
+async function flush(){if(!sb||!uid){dirty=false;return}if(writing){again=true;return}writing=true;
+  const {error}=await sb.from('game_state').upsert({user_id:uid,state,updated_at:new Date().toISOString()});
+  $('status').textContent=error?'Could not save that change: '+error.message:'';
+  writing=false;if(again){again=false;flush()}else dirty=false}
+function local(){try{const s=localStorage.getItem(LS);return s?JSON.parse(s):null}catch(e){return null}}
+async function load(){$('status').textContent='Loading your pipeline…';
+  const {data,error}=await sb.from('game_state').select('state').eq('user_id',uid).maybeSingle();
+  if(error){$('status').textContent='Could not load: '+error.message;return}
+  state=norm(data?data.state:null);$('login').classList.remove('on');$('out').hidden=false;
+  $('status').textContent=state.contacts.length?'':'No leads yet. Add your first one.';
+  render()}
+async function start(){
+  if(!window.supabase||!CFG.url||!CFG.anonKey||CFG.url.includes('YOUR_')){state=norm(local());$('status').textContent='Supabase not configured, saving to this browser only.';render();return}
+  sb=window.supabase.createClient(CFG.url,CFG.anonKey);
+  sb.auth.onAuthStateChange((ev,session)=>{const id=session&&session.user.id;if(id&&id!==uid){uid=id;load()}if(!id){uid=null;$('login').classList.add('on');$('out').hidden=true}});
+  const {data}=await sb.auth.getSession();if(!data.session)$('login').classList.add('on');}
+$('loginF').addEventListener('submit',async e=>{e.preventDefault();const email=$('email').value.trim();if(!email)return;
+  $('lmsg').textContent='Sending…';const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}});
+  $('lmsg').textContent=error?error.message:'Check your inbox for the login link.'});
+$('out').addEventListener('click',async()=>{await sb.auth.signOut();state=null;$('board').innerHTML='';});
+
+
+/* ---------- game logic ---------- */
+function level(xp){let i=0;LEVELS.forEach((l,j)=>{if(xp>=l[1])i=j});return i}
+function log(type,label,xp){state.events.unshift({t:Date.now(),type,label,xp});state.events=state.events.slice(0,300)}
+function gain(xp,type,label){const before=level(state.xp);state.xp+=xp;log(type,label,xp);
+  let msg=xp?`<b class="pop">+${xp} XP</b> ${esc(label)}`:esc(label);
+  const after=level(state.xp);if(after>before)msg=`<b class="pop">Round closed: ${LEVELS[after][0]}!</b> ${esc(label)}`;
+  checkQuests(m=>msg+=` · <b>Quest +${m}</b>`);toast(msg)}
+function countToday(types){const d=today();return state.events.filter(e=>day(e.t)===d&&types.includes(e.type)).length}
+function checkQuests(cb){const d=today();const done=state.quests[d]||[];
+  QUESTS.forEach(q=>{if(!done.includes(q.id)&&countToday(q.types)>=q.goal){done.push(q.id);state.xp+=q.bonus;log('quest',q.n,q.bonus);cb(q.bonus)}});
+  state.quests={[d]:done}}
+function streak(){const days=new Set(state.events.filter(e=>e.type!=='quest').map(e=>day(e.t)));let n=0;const d=new Date();if(!days.has(day(d)))d.setDate(d.getDate()-1);
+  while(days.has(day(d))){n++;d.setDate(d.getDate()-1)}return n}
+const idx=k=>STAGES.findIndex(s=>s.k===k);
+function snapshot(){prev=clone(state)}
+function moveTo(c,k){snapshot();const to=idx(k);let xp=0;
+  STAGES.slice(1,to+1).forEach(s=>{if(!c.reached.includes(s.k)){c.reached.push(s.k);xp+=s.xp}});
+  c.stage=k;c.lastTouch=Date.now();gain(xp,k,`${c.company}${c.who&&c.who!=='-'?' · '+c.who:''} → ${STAGES[to].n}`);save();render()}
+function back(c){const i=idx(c.stage);if(i<=0)return;snapshot();c.stage=STAGES[i-1].k;log('back',c.company+' moved back',0);toast(esc(c.company)+' moved back');save();render()}
+function nudge(c){snapshot();c.lastTouch=Date.now();gain(5,'nudge','Nudged '+(c.who||c.company));save();render()}
+function kill(c){snapshot();c.stage='dead';c.lastTouch=Date.now();gain(3,'dead','Closed the loop on '+c.company);save();render()}
+function revive(c){snapshot();c.stage='todo';log('back',c.company+' revived',0);toast(esc(c.company)+' is back in play');save();render()}
+const stale=c=>['sent','replied','meeting'].includes(c.stage)&&c.lastTouch&&(Date.now()-c.lastTouch)/864e5>=STALE_DAYS;
+const late=c=>c.stage==='todo'&&c.due&&c.due<today();
+
+/* ---------- render ---------- */
+function render(){if(!state)return;
+  const L=level(state.xp),cur=LEVELS[L],nxt=LEVELS[L+1];
+  $('lvl').textContent=cur[0];
+  $('xpnext').textContent=nxt?`${state.xp} XP · ${nxt[1]-state.xp} to ${nxt[0]}`:`${state.xp} XP · you made it`;
+  $('xpbar').style.width=(nxt?Math.min(100,(state.xp-cur[1])/(nxt[1]-cur[1])*100):100)+'%';
+  const live=state.contacts.filter(c=>c.stage!=='dead');
+  const n=k=>live.filter(c=>c.stage===k).length;
+  $('stats').innerHTML=[[streak()+'d','streak'],[live.length,'live leads'],[live.filter(c=>c.stage!=='todo').length,'contacted'],[n('meeting')+n('process')+n('offer'),'meetings+']].map(s=>`<span><b>${s[0]}</b>${s[1]}</span>`).join('');
+  const done=state.quests[today()]||[];
+  $('quests').innerHTML=QUESTS.map(q=>{const c=Math.min(q.goal,countToday(q.types)),ok=done.includes(q.id);
+    return `<div class="q ${ok?'done':''}"><div class="h">${esc(q.n)}<span>${ok?'Done':'+'+q.bonus+' XP'}</span></div><div class="bar"><i style="width:${c/q.goal*100}%"></i></div><small>${c} / ${q.goal} today</small></div>`}).join('');
+  const term=$('q').value.trim().toLowerCase();
+  const show=c=>(filterP==='All'||c.priority===filterP)&&(!term||[c.company,c.who,c.action,c.notes,c.msg].join(' ').toLowerCase().includes(term));
+  const rank={High:0,Medium:1,Low:2};
+  $('board').innerHTML=STAGES.map(s=>{const cs=live.filter(c=>c.stage===s.k&&show(c)).sort((a,b)=>rank[a.priority]-rank[b.priority]||String(a.due||'').localeCompare(String(b.due||'')));
+    return `<section class="col" data-k="${s.k}"><header><h3>${s.n}</h3><small>${cs.length}${s.xp?' · '+s.xp+' XP':''}</small></header>${cs.map(card).join('')||'<div class="empty">Nothing here yet.</div>'}</section>`}).join('');
+  const dead=state.contacts.filter(c=>c.stage==='dead');
+  $('graveT').textContent=`Graveyard (${dead.length})`;
+  $('graveL').innerHTML=dead.map(c=>`<button class="ghost" data-revive="${c.id}">${esc(c.company)} · ${esc(c.who||'')} ↺</button>`).join('')||'<span class="empty">No dead leads. Keep it that way.</span>';
+  $('log').innerHTML=state.events.slice(0,8).map(e=>`<li>${new Date(e.t).toLocaleString([], {weekday:'short',hour:'2-digit',minute:'2-digit'})} · ${esc(e.label)}${e.xp?' · +'+e.xp:''}</li>`).join('')||'<li>No moves yet.</li>';
+}
+function card(c){const i=idx(c.stage),next=STAGES[i+1];
+  const flag=late(c)?`<span class="tag late">Overdue</span>`:stale(c)?`<span class="tag stale">Nudge me</span>`:c.due&&c.stage==='todo'?`<span class="tag">${esc(c.due.slice(5).replace('-','/'))}</span>`:'<span></span>';
+  return `<article class="card" draggable="true" tabindex="0" data-id="${c.id}"><div class="co"><span class="dot p-${esc(c.priority)}"></span>${esc(c.company)}</div>
+  ${c.who&&c.who!=='-'?`<div class="who">${esc(c.who)}</div>`:''}${c.action?`<div class="act">${esc(c.action)}</div>`:''}
+  <div class="ft">${flag}${next?`<button class="adv" data-adv="${c.id}" aria-label="Move ${esc(c.company)} to ${next.n}">${next.n} →</button>`:''}</div></article>`}
+
+/* ---------- modal ---------- */
+const F=['company','who','priority','due','action','msg','notes'];
+function open(id){openId=id;const c=id?state.contacts.find(x=>x.id===id):{priority:'High',stage:'todo'};
+  F.forEach(f=>$('f-'+f).value=c[f]||(f==='priority'?'Medium':''));
+  $('mt').textContent=id?(c.company||'Lead'):'New lead';$('copied').textContent='';
+  const i=idx(c.stage);
+  $('sb').innerHTML=STAGES.map((s,j)=>`<span class="${j<=i&&c.stage!=='dead'?'on':''}">${s.n}</span>`).join('');
+  $('moves').innerHTML=id?[c.stage!=='dead'&&STAGES[i+1]?`<button type="button" class="win" data-m="adv">${STAGES[i+1].n} →</button>`:'',
+    i>0?`<button type="button" data-m="back">← Back</button>`:'',
+    ['sent','replied','meeting'].includes(c.stage)?`<button type="button" data-m="nudge">Log a nudge (+5)</button>`:'',
+    c.stage!=='dead'?`<button type="button" class="ghost" data-m="dead">Dead end (+3)</button>`:`<button type="button" data-m="revive">Revive</button>`].join(''):'';
+  $('del').style.display=id?'':'none';$('del').textContent='Delete';
+  $('ov').classList.add('on');$('f-company').focus()}
+function shut(){$('ov').classList.remove('on');openId=null}
+function readForm(c){F.forEach(f=>c[f]=$('f-'+f).value.trim())}
+$('form').addEventListener('submit',e=>{e.preventDefault();snapshot();
+  if(openId){const c=state.contacts.find(x=>x.id===openId);readForm(c);toast('Saved')}
+  else{const c={id:'c'+Date.now().toString(36),stage:'todo',reached:[],created:Date.now()};readForm(c);if(!c.company)return;state.contacts.push(c);gain(5,'add','New lead: '+c.company)}
+  save();shut();render()});
+$('moves').addEventListener('click',e=>{const m=e.target.dataset.m;if(!m)return;const c=state.contacts.find(x=>x.id===openId);readForm(c);
+  if(m==='adv')moveTo(c,STAGES[idx(c.stage)+1].k);if(m==='back')back(c);if(m==='nudge')nudge(c);if(m==='dead')kill(c);if(m==='revive')revive(c);shut()});
+$('del').addEventListener('click',()=>{if($('del').textContent==='Delete'){$('del').textContent='Tap again to delete';return}
+  snapshot();state.contacts=state.contacts.filter(x=>x.id!==openId);toast('Lead deleted');save();shut();render()});
+$('close').addEventListener('click',shut);
+$('ov').addEventListener('click',e=>{if(e.target.id==='ov')shut()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&openId!==undefined&&$('ov').classList.contains('on'))shut()});
+$('copy').addEventListener('click',()=>{const t=$('f-msg').value;
+  navigator.clipboard.writeText(t).then(()=>$('copied').textContent='Copied. Go send it.').catch(()=>{$('f-msg').select();$('copied').textContent='Selected, press Ctrl/Cmd+C.'})});
+
+/* ---------- board events ---------- */
+$('board').addEventListener('click',e=>{const a=e.target.closest('[data-adv]');
+  if(a){e.stopPropagation();const c=state.contacts.find(x=>x.id===a.dataset.adv);moveTo(c,STAGES[idx(c.stage)+1].k);return}
+  const k=e.target.closest('.card');if(k)open(k.dataset.id)});
+$('board').addEventListener('keydown',e=>{const k=e.target.closest('.card');if(k&&e.key==='Enter'&&e.target===k)open(k.dataset.id)});
+$('board').addEventListener('dragstart',e=>{const k=e.target.closest('.card');if(k)e.dataTransfer.setData('text/plain',k.dataset.id)});
+$('board').addEventListener('dragover',e=>{const col=e.target.closest('.col');if(col){e.preventDefault();col.classList.add('over')}});
+$('board').addEventListener('dragleave',e=>{const col=e.target.closest('.col');if(col)col.classList.remove('over')});
+$('board').addEventListener('drop',e=>{const col=e.target.closest('.col');if(!col)return;e.preventDefault();
+  const c=state.contacts.find(x=>x.id===e.dataTransfer.getData('text/plain'));if(!c)return;
+  if(idx(col.dataset.k)>idx(c.stage))moveTo(c,col.dataset.k);else if(col.dataset.k!==c.stage){snapshot();c.stage=col.dataset.k;save();render()}else render()});
+$('graveL').addEventListener('click',e=>{const b=e.target.closest('[data-revive]');if(b)revive(state.contacts.find(x=>x.id===b.dataset.revive))});
+$('add').addEventListener('click',()=>open(null));
+$('q').addEventListener('input',render);
+document.querySelectorAll('.chip').forEach(b=>b.addEventListener('click',()=>{filterP=b.dataset.p;document.querySelectorAll('.chip').forEach(x=>x.setAttribute('aria-pressed',x===b));render()}));
+function toast(html){$('tmsg').innerHTML=html;$('toast').classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>$('toast').classList.remove('on'),4500)}
+$('undo').addEventListener('click',()=>{if(!prev)return;state=prev;prev=null;save();render();$('toast').classList.remove('on')});
+
+start();
+}
+</script>
+</body>
+</html>
