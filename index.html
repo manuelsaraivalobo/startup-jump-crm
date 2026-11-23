@@ -32,7 +32,11 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 button.pri{background:var(--cob);color:#fff;border-color:var(--cob)}
 button.win{background:var(--cor);color:#fff;border-color:var(--cor)}
 button.ghost{background:transparent}
-.top{padding:20px max(4vw,16px) 8px;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:20px;align-items:end}
+.nav{display:flex;justify-content:space-between;align-items:center;padding:10px max(4vw,16px) 0}
+.brand{font-family:Archivo;font-weight:800;font-size:17px}
+.gear{display:inline-flex;align-items:center;gap:8px;font-weight:600}
+.set{display:grid;gap:8px;padding:14px 0;border-top:1px solid var(--line)}.set h3{margin:0;font-size:17px}.set p{margin:0}
+.top{padding:12px max(4vw,16px) 8px;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:20px;align-items:end}
 .title h1{font-size:clamp(30px,4vw,44px);line-height:1.05;margin:0 0 6px;text-wrap:balance}
 .title p{margin:0;color:var(--mute)}
 .round{background:var(--ink);color:var(--bg);border-radius:18px;padding:16px 18px;display:grid;gap:8px}
@@ -92,6 +96,9 @@ textarea{resize:vertical;min-height:90px;line-height:1.45}
 </style>
 </head>
 <body>
+<nav class="nav"><span class="brand">Startup Jump</span>
+  <button class="ghost gear" id="gear" aria-label="Settings"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg><span>Settings</span></button>
+</nav>
 <section class="top">
   <div class="title">
     <h1>Startup Jump: raise your round</h1>
@@ -111,8 +118,6 @@ textarea{resize:vertical;min-height:90px;line-height:1.45}
   <button class="chip" data-p="Medium" aria-pressed="false">Medium</button>
   <button class="chip" data-p="Low" aria-pressed="false">Low</button>
   <button class="pri" id="add">+ New lead</button>
-  <button class="ghost" id="setpw" hidden>Set password</button>
-  <button class="ghost" id="out" hidden>Sign out</button>
 </div>
 <p class="note" id="status">Loading your pipeline…</p>
 <main class="board" id="board"></main>
@@ -150,13 +155,21 @@ textarea{resize:vertical;min-height:90px;line-height:1.45}
     <div class="acts"><button type="submit" class="pri">Log in</button><span id="lmsg" class="empty" aria-live="polite"></span></div>
   </form>
 </div>
-<div class="ov" id="pwov" role="dialog" aria-modal="true" aria-labelledby="pwt">
-  <form class="modal" id="pwF">
-    <h2 id="pwt">Set a password</h2>
-    <p class="empty">Then you can log in on any device with email and password, no email link needed.</p>
-    <label>New password (8+ characters)<input id="newpw" type="password" autocomplete="new-password" minlength="8" required></label>
-    <div class="acts"><button type="submit" class="pri">Save password</button><button type="button" class="ghost" id="pwclose">Close</button><span id="pwmsg" class="empty" aria-live="polite"></span></div>
-  </form>
+<div class="ov" id="setov" role="dialog" aria-modal="true" aria-labelledby="sett">
+  <div class="modal">
+    <h2 id="sett">Settings</h2>
+    <section class="set"><h3>Account</h3><p class="empty" id="acct">Not logged in.</p></section>
+    <form class="set" id="pwF"><h3>Password</h3>
+      <p class="empty">Log in on any device with email and password, no email link needed.</p>
+      <label>New password (8+ characters)<input id="newpw" type="password" autocomplete="new-password" minlength="8" required></label>
+      <div class="acts"><button type="submit" class="pri">Save password</button><span id="pwmsg" class="empty" aria-live="polite"></span></div>
+    </form>
+    <form class="set" id="gameF"><h3>Game</h3>
+      <label>Flag a lead "Nudge me" after this many quiet days<input id="staleIn" type="number" min="1" max="30" required></label>
+      <div class="acts"><button type="submit">Save</button><span id="gmsg" class="empty" aria-live="polite"></span></div>
+    </form>
+    <section class="set"><div class="acts"><button type="button" id="out">Sign out</button><button type="button" class="ghost" id="setclose">Close</button></div></section>
+  </div>
 </div>
 <div class="toast" id="toast" role="status"><span id="tmsg"></span><button id="undo" type="button">Undo</button></div>
 
@@ -167,7 +180,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.45}
 const STAGES=[{k:'todo',n:'To do',xp:0},{k:'sent',n:'Sent',xp:10},{k:'replied',n:'Replied',xp:25},{k:'meeting',n:'Meeting',xp:50},{k:'process',n:'Interviewing',xp:100},{k:'offer',n:'Offer',xp:300}];
 const LEVELS=[['Pre-seed',0],['Seed',100],['Series A',300],['Series B',700],['Series C',1300],['Pre-IPO',2200],['IPO',3500]];
 const QUESTS=[{id:'send5',n:'Send 5 messages',goal:5,types:['sent'],bonus:20},{id:'nudge2',n:'Nudge 2 quiet leads',goal:2,types:['nudge'],bonus:15},{id:'meet1',n:'Land a reply or meeting',goal:1,types:['replied','meeting'],bonus:30}];
-const STALE_DAYS=5,LS='startup-jump-crm';
+const LS='startup-jump-crm';const staleDays=()=>(state&&state.settings&&+state.settings.staleDays)||5;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const day=t=>new Date(t).toLocaleDateString('en-CA');
@@ -190,24 +203,29 @@ function local(){try{const s=localStorage.getItem(LS);return s?JSON.parse(s):nul
 async function load(){$('status').textContent='Loading your pipeline…';
   const {data,error}=await sb.from('game_state').select('state').eq('user_id',uid).maybeSingle();
   if(error){$('status').textContent='Could not load: '+error.message;return}
-  state=norm(data?data.state:null);$('login').classList.remove('on');$('out').hidden=false;$('setpw').hidden=false;
+  state=norm(data?data.state:null);$('login').classList.remove('on');
   $('status').textContent=state.contacts.length?'':'No leads yet. Add your first one.';
   render()}
 async function start(){
   if(!window.supabase||!CFG.url||!CFG.anonKey||CFG.url.includes('YOUR_')){state=norm(local());$('status').textContent='Supabase not configured, saving to this browser only.';render();return}
   sb=window.supabase.createClient(CFG.url,CFG.anonKey);
-  sb.auth.onAuthStateChange((ev,session)=>{const id=session&&session.user.id;if(id&&id!==uid){uid=id;load()}if(!id){uid=null;$('login').classList.add('on');$('out').hidden=true;$('setpw').hidden=true}});
+  sb.auth.onAuthStateChange((ev,session)=>{const id=session&&session.user.id;if(id&&id!==uid){uid=id;load()}if(!id){uid=null;$('login').classList.add('on');$('setov').classList.remove('on')}});
   const {data}=await sb.auth.getSession();if(!data.session)$('login').classList.add('on');}
 $('loginF').addEventListener('submit',async e=>{e.preventDefault();const email=$('email').value.trim(),password=$('pass').value;if(!email)return;
   if(password){$('lmsg').textContent='Logging in…';const {error}=await sb.auth.signInWithPassword({email,password});$('lmsg').textContent=error?error.message:'';return}
   $('lmsg').textContent='Sending…';const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}});
   $('lmsg').textContent=error?(/rate limit/i.test(error.message)?'Too many login emails for now. Use your password, or try again in an hour.':error.message):'Check your inbox for the login link.'});
-$('setpw').addEventListener('click',()=>{$('pwmsg').textContent='';$('pwov').classList.add('on');$('newpw').focus()});
-$('pwclose').addEventListener('click',()=>$('pwov').classList.remove('on'));
+$('gear').addEventListener('click',async()=>{$('pwmsg').textContent='';$('gmsg').textContent='';$('staleIn').value=staleDays();
+  let email='';if(sb){const {data}=await sb.auth.getUser();email=data&&data.user?data.user.email:''}
+  $('acct').textContent=email?'Logged in as '+email:(sb?'Not logged in.':'Saving to this browser only.');
+  $('pwF').hidden=$('out').hidden=!email;$('setov').classList.add('on')});
+$('setclose').addEventListener('click',()=>$('setov').classList.remove('on'));
+$('setov').addEventListener('click',e=>{if(e.target.id==='setov')$('setov').classList.remove('on')});
 $('pwF').addEventListener('submit',async e=>{e.preventDefault();$('pwmsg').textContent='Saving…';
   const {error}=await sb.auth.updateUser({password:$('newpw').value});
   $('pwmsg').textContent=error?error.message:'Saved. Use it to log in on your phone.';if(!error)$('newpw').value=''});
-$('out').addEventListener('click',async()=>{await sb.auth.signOut();state=null;$('board').innerHTML='';});
+$('gameF').addEventListener('submit',e=>{e.preventDefault();if(!state)return;state.settings=Object.assign({},state.settings,{staleDays:Math.max(1,Math.min(30,+$('staleIn').value||5))});save();render();$('gmsg').textContent='Saved.'});
+$('out').addEventListener('click',async()=>{$('setov').classList.remove('on');await sb.auth.signOut();state=null;$('board').innerHTML='';});
 
 
 /* ---------- game logic ---------- */
@@ -232,7 +250,7 @@ function back(c){const i=idx(c.stage);if(i<=0)return;snapshot();c.stage=STAGES[i
 function nudge(c){snapshot();c.lastTouch=Date.now();gain(5,'nudge','Nudged '+(c.who||c.company));save();render()}
 function kill(c){snapshot();c.stage='dead';c.lastTouch=Date.now();gain(3,'dead','Closed the loop on '+c.company);save();render()}
 function revive(c){snapshot();c.stage='todo';log('back',c.company+' revived',0);toast(esc(c.company)+' is back in play');save();render()}
-const stale=c=>['sent','replied','meeting'].includes(c.stage)&&c.lastTouch&&(Date.now()-c.lastTouch)/864e5>=STALE_DAYS;
+const stale=c=>['sent','replied','meeting'].includes(c.stage)&&c.lastTouch&&(Date.now()-c.lastTouch)/864e5>=staleDays();
 const late=c=>c.stage==='todo'&&c.due&&c.due<today();
 
 /* ---------- render ---------- */
