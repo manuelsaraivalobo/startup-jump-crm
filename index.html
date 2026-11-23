@@ -111,6 +111,7 @@ textarea{resize:vertical;min-height:90px;line-height:1.45}
   <button class="chip" data-p="Medium" aria-pressed="false">Medium</button>
   <button class="chip" data-p="Low" aria-pressed="false">Low</button>
   <button class="pri" id="add">+ New lead</button>
+  <button class="ghost" id="setpw" hidden>Set password</button>
   <button class="ghost" id="out" hidden>Sign out</button>
 </div>
 <p class="note" id="status">Loading your pipeline…</p>
@@ -143,9 +144,18 @@ textarea{resize:vertical;min-height:90px;line-height:1.45}
 <div class="ov" id="login" role="dialog" aria-modal="true" aria-labelledby="lt">
   <form class="modal" id="loginF">
     <h2 id="lt">Log in to your round</h2>
-    <p class="empty">We'll email you a magic link. Your pipeline is saved to your account.</p>
+    <p class="empty">Log in with your password, or leave it empty and we'll email you a login link.</p>
     <label>Email<input id="email" type="email" autocomplete="email" required></label>
-    <div class="acts"><button type="submit" class="pri">Send login link</button><span id="lmsg" class="empty" aria-live="polite"></span></div>
+    <label>Password<input id="pass" type="password" autocomplete="current-password"></label>
+    <div class="acts"><button type="submit" class="pri">Log in</button><span id="lmsg" class="empty" aria-live="polite"></span></div>
+  </form>
+</div>
+<div class="ov" id="pwov" role="dialog" aria-modal="true" aria-labelledby="pwt">
+  <form class="modal" id="pwF">
+    <h2 id="pwt">Set a password</h2>
+    <p class="empty">Then you can log in on any device with email and password, no email link needed.</p>
+    <label>New password (8+ characters)<input id="newpw" type="password" autocomplete="new-password" minlength="8" required></label>
+    <div class="acts"><button type="submit" class="pri">Save password</button><button type="button" class="ghost" id="pwclose">Close</button><span id="pwmsg" class="empty" aria-live="polite"></span></div>
   </form>
 </div>
 <div class="toast" id="toast" role="status"><span id="tmsg"></span><button id="undo" type="button">Undo</button></div>
@@ -180,17 +190,23 @@ function local(){try{const s=localStorage.getItem(LS);return s?JSON.parse(s):nul
 async function load(){$('status').textContent='Loading your pipeline…';
   const {data,error}=await sb.from('game_state').select('state').eq('user_id',uid).maybeSingle();
   if(error){$('status').textContent='Could not load: '+error.message;return}
-  state=norm(data?data.state:null);$('login').classList.remove('on');$('out').hidden=false;
+  state=norm(data?data.state:null);$('login').classList.remove('on');$('out').hidden=false;$('setpw').hidden=false;
   $('status').textContent=state.contacts.length?'':'No leads yet. Add your first one.';
   render()}
 async function start(){
   if(!window.supabase||!CFG.url||!CFG.anonKey||CFG.url.includes('YOUR_')){state=norm(local());$('status').textContent='Supabase not configured, saving to this browser only.';render();return}
   sb=window.supabase.createClient(CFG.url,CFG.anonKey);
-  sb.auth.onAuthStateChange((ev,session)=>{const id=session&&session.user.id;if(id&&id!==uid){uid=id;load()}if(!id){uid=null;$('login').classList.add('on');$('out').hidden=true}});
+  sb.auth.onAuthStateChange((ev,session)=>{const id=session&&session.user.id;if(id&&id!==uid){uid=id;load()}if(!id){uid=null;$('login').classList.add('on');$('out').hidden=true;$('setpw').hidden=true}});
   const {data}=await sb.auth.getSession();if(!data.session)$('login').classList.add('on');}
-$('loginF').addEventListener('submit',async e=>{e.preventDefault();const email=$('email').value.trim();if(!email)return;
+$('loginF').addEventListener('submit',async e=>{e.preventDefault();const email=$('email').value.trim(),password=$('pass').value;if(!email)return;
+  if(password){$('lmsg').textContent='Logging in…';const {error}=await sb.auth.signInWithPassword({email,password});$('lmsg').textContent=error?error.message:'';return}
   $('lmsg').textContent='Sending…';const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}});
-  $('lmsg').textContent=error?error.message:'Check your inbox for the login link.'});
+  $('lmsg').textContent=error?(/rate limit/i.test(error.message)?'Too many login emails for now. Use your password, or try again in an hour.':error.message):'Check your inbox for the login link.'});
+$('setpw').addEventListener('click',()=>{$('pwmsg').textContent='';$('pwov').classList.add('on');$('newpw').focus()});
+$('pwclose').addEventListener('click',()=>$('pwov').classList.remove('on'));
+$('pwF').addEventListener('submit',async e=>{e.preventDefault();$('pwmsg').textContent='Saving…';
+  const {error}=await sb.auth.updateUser({password:$('newpw').value});
+  $('pwmsg').textContent=error?error.message:'Saved. Use it to log in on your phone.';if(!error)$('newpw').value=''});
 $('out').addEventListener('click',async()=>{await sb.auth.signOut();state=null;$('board').innerHTML='';});
 
 
